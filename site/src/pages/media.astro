@@ -1,0 +1,405 @@
+---
+import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
+import Layout from '../layouts/Layout.astro';
+import { SITE_TITLE } from '../consts';
+
+// Import all media assets
+import blogPlaceholder1 from '../assets/blog-placeholder-1.jpg';
+import blogPlaceholder2 from '../assets/blog-placeholder-2.jpg';
+import blogPlaceholder3 from '../assets/blog-placeholder-3.jpg';
+import blogPlaceholder4 from '../assets/blog-placeholder-4.jpg';
+import blogPlaceholder5 from '../assets/blog-placeholder-5.jpg';
+import blogPlaceholderAbout from '../assets/blog-placeholder-about.jpg';
+
+// Get all blog posts to find which ones use each image
+const posts = await getCollection('blog');
+
+// Create a mapping of image paths to their imports and metadata
+const mediaItems = [
+	{
+		id: 'blog-placeholder-1',
+		name: 'RTX Autonomous Vehicle Competition',
+		src: blogPlaceholder1,
+		path: '../../assets/blog-placeholder-1.jpg',
+		featured: true,
+		description: 'Autonomous vehicle systems and competition robotics'
+	},
+	{
+		id: 'blog-placeholder-2',
+		name: 'Advanced Rocketry Systems',
+		src: blogPlaceholder2,
+		path: '../../assets/blog-placeholder-2.jpg',
+		featured: true,
+		description: 'LoRa networks, telemetry systems, and aerospace engineering'
+	},
+	{
+		id: 'blog-placeholder-3',
+		name: 'UTPROSAT CubeSat Mission',
+		src: blogPlaceholder3,
+		path: '../../assets/blog-placeholder-3.jpg',
+		featured: true,
+		description: 'Satellite communications and space systems'
+	},
+	{
+		id: 'blog-placeholder-4',
+		name: 'Autonomous Surface Vessels',
+		src: blogPlaceholder4,
+		path: '../../assets/blog-placeholder-4.jpg',
+		featured: false,
+		description: 'Maritime autonomous systems and control'
+	},
+	{
+		id: 'blog-placeholder-5',
+		name: 'Engineering Projects',
+		src: blogPlaceholder5,
+		path: '../../assets/blog-placeholder-5.jpg',
+		featured: false,
+		description: 'Various engineering and technical projects'
+	},
+	{
+		id: 'blog-placeholder-about',
+		name: 'About & Profile',
+		src: blogPlaceholderAbout,
+		path: '../../assets/blog-placeholder-about.jpg',
+		featured: false,
+		description: 'Professional profile and personal projects'
+	}
+];
+
+// Find which posts use each image
+const mediaWithPosts = mediaItems.map(item => {
+	const usedInPosts = posts.filter(post => {
+		const heroImage = post.data.heroImage;
+		if (!heroImage) return false;
+		
+		// Handle both string paths and Astro image objects
+		let heroImagePath = '';
+		if (typeof heroImage === 'string') {
+			heroImagePath = heroImage;
+		} else if (heroImage && typeof heroImage === 'object' && 'src' in heroImage) {
+			// For Astro image objects, use the src property
+			heroImagePath = heroImage.src;
+		}
+		
+		return heroImagePath.includes(item.id);
+	});
+	
+	return {
+		...item,
+		usedInPosts
+	};
+});
+
+// Get featured items for carousel
+const featuredMedia = mediaWithPosts.filter(item => item.featured);
+const allMedia = mediaWithPosts;
+---
+
+<Layout title={`Media - ${SITE_TITLE}`} description="Visual showcase of projects, systems, and technical work in autonomous vehicles, rocketry, and embedded systems.">
+	<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+		<header class="mb-12 text-center">
+			<h1 class="text-4xl font-bold mb-4 text-black">Media Gallery</h1>
+			<p class="text-xl text-gray-700 max-w-3xl mx-auto">
+				Visual documentation of projects spanning autonomous systems, aerospace engineering, embedded systems, and technical innovations.
+			</p>
+		</header>
+
+		<!-- Featured Carousel -->
+		<section class="mb-16">
+			<h2 class="text-2xl font-bold mb-8 text-black">Featured Projects</h2>
+			<div class="relative overflow-hidden rounded-lg shadow-lg">
+				<div id="carousel" class="flex transition-transform duration-500 ease-in-out">
+					{featuredMedia.map((item, index) => (
+						<div class="min-w-full relative group cursor-pointer" data-media-id={item.id}>
+							<Image 
+								src={item.src} 
+								alt={item.name}
+								width={1200}
+								height={600}
+								class="w-full h-96 object-cover"
+							/>
+							<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent">
+								<div class="absolute bottom-0 left-0 right-0 p-8 text-white">
+									<h3 class="text-2xl font-bold mb-2">{item.name}</h3>
+									<p class="text-lg opacity-90 mb-4">{item.description}</p>
+									{item.usedInPosts.length > 0 && (
+										<div class="flex items-center text-sm opacity-80">
+											<svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+												<path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
+											</svg>
+											Used in {item.usedInPosts.length} {item.usedInPosts.length === 1 ? 'post' : 'posts'}
+										</div>
+									)}
+								</div>
+							</div>
+						</div>
+					))}
+				</div>
+				
+				<!-- Carousel Navigation -->
+				<button id="prevBtn" class="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-colors">
+					<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+					</svg>
+				</button>
+				<button id="nextBtn" class="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-colors">
+					<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+					</svg>
+				</button>
+
+				<!-- Carousel Indicators -->
+				<div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
+					{featuredMedia.map((_, index) => (
+						<button 
+							class="carousel-indicator w-3 h-3 rounded-full transition-colors"
+							data-slide-to={index}
+						></button>
+					))}
+				</div>
+			</div>
+		</section>
+
+		<!-- Media Grid -->
+		<section>
+			<div class="flex items-center justify-between mb-8">
+				<h2 class="text-2xl font-bold text-black">All Media</h2>
+				<div class="text-sm text-gray-600">
+					{allMedia.length} {allMedia.length === 1 ? 'item' : 'items'}
+				</div>
+			</div>
+			
+			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+				{allMedia.map((item) => (
+					<div class="group cursor-pointer media-item" data-media-id={item.id}>
+						<div class="relative overflow-hidden rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
+							<Image 
+								src={item.src} 
+								alt={item.name}
+								width={400}
+								height={300}
+								class="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+							/>
+							<div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors">
+								<div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+									<div class="bg-white rounded-full p-3">
+										<svg class="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+										</svg>
+									</div>
+								</div>
+							</div>
+							{item.featured && (
+								<div class="absolute top-4 left-4">
+									<span class="bg-black text-white px-2 py-1 text-xs rounded">Featured</span>
+								</div>
+							)}
+						</div>
+						<div class="mt-4">
+							<h3 class="font-semibold text-lg text-black group-hover:text-gray-700 transition-colors">
+								{item.name}
+							</h3>
+							<p class="text-sm text-gray-600 mt-1">{item.description}</p>
+							{item.usedInPosts.length > 0 && (
+								<div class="flex items-center mt-2 text-sm text-gray-500">
+									<svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+										<path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
+									</svg>
+									{item.usedInPosts.length} {item.usedInPosts.length === 1 ? 'post' : 'posts'}
+								</div>
+							)}
+						</div>
+					</div>
+				))}
+			</div>
+		</section>
+	</div>
+
+	<!-- Media Detail Modal -->
+	<div id="mediaModal" class="fixed inset-0 bg-black/80 z-50 hidden items-center justify-center p-4">
+		<div class="bg-white rounded-lg max-w-4xl max-h-[90vh] overflow-hidden">
+			<div class="flex justify-between items-center p-6 border-b border-gray-200">
+				<h3 id="modalTitle" class="text-2xl font-bold"></h3>
+				<button id="closeModal" class="text-gray-400 hover:text-gray-600">
+					<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+					</svg>
+				</button>
+			</div>
+			<div class="p-6 overflow-y-auto">
+				<div id="modalImage" class="mb-6"></div>
+				<div id="modalDescription" class="text-gray-700 mb-6"></div>
+				<div id="modalPosts">
+					<h4 class="font-semibold mb-4">Used in Posts:</h4>
+					<div id="postsList" class="space-y-3"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Pass media data to JavaScript -->
+	<script define:vars={{ mediaWithPosts }}>
+		// Media data with posts information
+		const mediaData = {};
+		mediaWithPosts.forEach(item => {
+			mediaData[item.id] = {
+				name: item.name,
+				description: item.description,
+				src: item.src,
+				posts: item.usedInPosts.map(post => ({
+					id: post.id,
+					title: post.data.title,
+					description: post.data.description,
+					pubDate: post.data.pubDate
+				}))
+			};
+		});
+		
+		// Make mediaData globally available
+		window.mediaData = mediaData;
+	</script>
+</Layout>
+
+<script>
+	// Carousel functionality
+	let currentSlide = 0;
+	const slides = document.querySelectorAll('#carousel > div');
+	const totalSlides = slides.length;
+	const carousel = document.getElementById('carousel');
+	const indicators = document.querySelectorAll('.carousel-indicator');
+
+	function updateCarousel() {
+		if (carousel) {
+			carousel.style.transform = `translateX(-${currentSlide * 100}%)`;
+		}
+		
+		indicators.forEach((indicator, index) => {
+			if (index === currentSlide) {
+				indicator.classList.add('bg-white');
+				indicator.classList.remove('bg-white/50');
+			} else {
+				indicator.classList.add('bg-white/50');
+				indicator.classList.remove('bg-white');
+			}
+		});
+	}
+
+	function nextSlide() {
+		currentSlide = (currentSlide + 1) % totalSlides;
+		updateCarousel();
+	}
+
+	function prevSlide() {
+		currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+		updateCarousel();
+	}
+
+	// Initialize carousel
+	updateCarousel();
+
+	// Event listeners
+	document.getElementById('nextBtn')?.addEventListener('click', nextSlide);
+	document.getElementById('prevBtn')?.addEventListener('click', prevSlide);
+
+	indicators.forEach((indicator, index) => {
+		indicator.addEventListener('click', () => {
+			currentSlide = index;
+			updateCarousel();
+		});
+	});
+
+	// Auto-advance carousel every 5 seconds
+	setInterval(nextSlide, 5000);
+
+	// Modal functionality
+	const modal = document.getElementById('mediaModal');
+	const closeModal = document.getElementById('closeModal');
+	const mediaItems = document.querySelectorAll('.media-item, [data-media-id]');
+	
+	mediaItems.forEach(item => {
+		item.addEventListener('click', () => {
+			const mediaId = item.getAttribute('data-media-id');
+			const globalMediaData = (window as any).mediaData;
+			if (mediaId && globalMediaData && globalMediaData[mediaId]) {
+				openModal(mediaId, globalMediaData[mediaId]);
+			}
+		});
+	});
+
+	function openModal(mediaId: any, data: any) {
+		const modalTitle = document.getElementById('modalTitle');
+		const modalDescription = document.getElementById('modalDescription');
+		const modalImage = document.getElementById('modalImage');
+		const postsList = document.getElementById('postsList');
+		
+		if (modalTitle) modalTitle.textContent = data.name;
+		if (modalDescription) modalDescription.textContent = data.description;
+		
+		// Clear and populate posts list
+		if (postsList) {
+			postsList.innerHTML = '';
+			
+			if (data.posts && data.posts.length > 0) {
+				data.posts.forEach((post: any) => {
+					const postElement = document.createElement('div');
+					postElement.className = 'border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors';
+					
+					const postDate = new Date(post.pubDate).toLocaleDateString('en-US', {
+						year: 'numeric',
+						month: 'long',
+						day: 'numeric'
+					});
+					
+					postElement.innerHTML = `
+						<div class="flex items-start justify-between mb-2">
+							<h5 class="font-semibold text-lg">
+								<a href="/posts/${post.id}" class="text-black hover:text-gray-700 no-underline">
+									${post.title}
+								</a>
+							</h5>
+							<span class="text-sm text-gray-500 whitespace-nowrap ml-4">${postDate}</span>
+						</div>
+						<p class="text-gray-600 text-sm">${post.description}</p>
+						<a href="/posts/${post.id}" class="inline-block mt-3 text-black hover:text-gray-700 text-sm font-medium underline underline-offset-2">
+							Read Post →
+						</a>
+					`;
+					
+					postsList.appendChild(postElement);
+				});
+			} else {
+				postsList.innerHTML = '<p class="text-gray-500 text-sm">This image is not currently used in any posts.</p>';
+			}
+		}
+		
+		if (modal) {
+			modal.classList.remove('hidden');
+			modal.classList.add('flex');
+		}
+	}
+
+	closeModal?.addEventListener('click', () => {
+		if (modal) {
+			modal.classList.add('hidden');
+			modal.classList.remove('flex');
+		}
+	});
+
+	// Close modal on background click
+	modal?.addEventListener('click', (e) => {
+		if (e.target === modal) {
+			modal.classList.add('hidden');
+			modal.classList.remove('flex');
+		}
+	});
+
+	// Close modal on Escape key
+	document.addEventListener('keydown', (e) => {
+		if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+			modal.classList.add('hidden');
+			modal.classList.remove('flex');
+		}
+	});
+</script>
